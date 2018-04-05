@@ -129,16 +129,13 @@ class BatteryLevelCharacteristic(Characteristic):
         if not self.notifying:
             return
 
-
-
+        self.PropertiesChanged(
+                GATT_CHRC_IFACE,
+                { 'Value': [dbus.Byte(self.battery_lvl)] }, [])
 
         #self.PropertiesChanged(
         #        GATT_CHRC_IFACE,
-        #        { 'Value': [dbus.Byte(self.battery_lvl)] }, [])
-
-        self.PropertiesChanged(
-                GATT_CHRC_IFACE,
-                { 'Value': [dbus.Byte(14),dbus.Byte(2)] }, [])
+        #        { 'Value': [dbus.Byte(14),dbus.Byte(2)] }, [])
 
     def drain_battery(self):
         if self.battery_lvl > 0:
@@ -154,6 +151,7 @@ class BatteryLevelCharacteristic(Characteristic):
 
     def ReadValue(self):
 
+        """
         meta_record = {
             "id": "asdf", 
             "description": "", 
@@ -168,13 +166,15 @@ class BatteryLevelCharacteristic(Characteristic):
             "duration": ""
         }
 
-        self.value = array.array('A', json.dumps(meta_record))
+        self.value = array.array('B', json.dumps(meta_record))
         self.value = self.value.tolist()        
         print (self.value)
-
-        ##print('Battery Level read: ' + repr(self.battery_lvl))
-        #return [dbus.Byte(14),dbus.Byte(2), dbus.Byte('M'), dbus.Byte('a'), dbus.Byte('t'), dbus.Byte('z')]
         return dbus.Array(self.value)
+        """
+
+        print('Battery Level read: ' + repr(self.battery_lvl))
+        return [dbus.Byte(self.battery_lvl)]
+        
 
     def StartNotify(self):
         if self.notifying:
