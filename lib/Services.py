@@ -18,6 +18,8 @@ from GattServer import Service
 from GattServer import Characteristic
 from GattServer import Descriptor
 
+from SystemDiscUsageService import *
+
 BLUEZ_SERVICE_NAME = 'org.bluez'
 GATT_MANAGER_IFACE = 'org.bluez.GattManager1'
 DBUS_OM_IFACE =      'org.freedesktop.DBus.ObjectManager'
@@ -48,7 +50,7 @@ class Services(Thread):
         mainloop.quit()
 
     def register_service_cb(self):
-        self.logger.info('GATT service registered')
+        self.logger.info('Registered GATT Service')
 
 
     def register_service_error_cb(self, error):
@@ -83,16 +85,69 @@ class Services(Thread):
                 bus.get_object(BLUEZ_SERVICE_NAME, adapter),
                 GATT_MANAGER_IFACE)
 
-        bat_service = BatteryService(bus, 1)
+        bat_service = BatteryService(bus, 0)
+        translation_service = TranslationService(bus, 1)
+        system_service = SystemDiscUsageService(bus, 2)
 
         mainloop = gobject.MainLoop()
 
-        service_manager.RegisterService(bat_service.get_path(), {},
+        #service_manager.RegisterService(bat_service.get_path(), {},
+        #                                reply_handler=self.register_service_cb,
+        #                                error_handler=self.register_service_error_cb)
+
+        service_manager.RegisterService(translation_service.get_path(), {},
                                         reply_handler=self.register_service_cb,
                                         error_handler=self.register_service_error_cb)
 
+        service_manager.RegisterService(system_service.get_path(), {},
+                                        reply_handler=self.register_service_cb,
+                                        error_handler=self.register_service_error_cb)
         
         mainloop.run()
+
+class TranslationService(Service):
+    """
+    Fake Battery service that emulates a draining battery.
+
+    """
+    TRANSLATION_UUID = '999A'
+
+    def __init__(self, bus, index):
+        Service.__init__(self, bus, index, self.TRANSLATION_UUID, True)
+        self.add_characteristic(TranslationCharacteristic(bus, 0, self))
+
+
+class TranslationCharacteristic(Characteristic):
+
+    TRANSLATION_UUID = '999B'
+
+    def __init__(self, bus, index, service):
+        Characteristic.__init__(
+                self, bus, index,
+                self.TRANSLATION_UUID,
+                ['read'],
+                service)
+
+
+    def ReadValue(self):
+
+        serviceTranslations = [{
+            "998A": "System",
+            "180A": "The Battery Service",
+            "999C": "House Lights",
+        }]
+
+        lth = len(json.dumps(serviceTranslations).encode('utf-8'))
+        global_logger.info("Translation Service string length is " + str(lth) + " bytes.")
+        if lth > 510:
+            global_logger.info("... WARNING - Translation Service is too long for Bluetooth.")
+
+        self.value = array.array('B', json.dumps(serviceTranslations))
+        self.value = self.value.tolist()        
+        return dbus.Array(self.value)
+
+
+
 
 
 class BatteryService(Service):
@@ -100,12 +155,12 @@ class BatteryService(Service):
     Fake Battery service that emulates a draining battery.
 
     """
-    BATTERY_UUID = '180f'
+    BATTERY_UUID = '180A'
 
     def __init__(self, bus, index):
         Service.__init__(self, bus, index, self.BATTERY_UUID, True)
         self.add_characteristic(BatteryLevelCharacteristic(bus, 0, self))
-
+ 
 
 class BatteryLevelCharacteristic(Characteristic):
     """
@@ -113,7 +168,7 @@ class BatteryLevelCharacteristic(Characteristic):
     every 5 seconds.
 
     """
-    BATTERY_LVL_UUID = '2a19'
+    BATTERY_LVL_UUID = '888a'
 
     def __init__(self, bus, index, service):
         Characteristic.__init__(
@@ -121,6 +176,7 @@ class BatteryLevelCharacteristic(Characteristic):
                 self.BATTERY_LVL_UUID,
                 ['read', 'notify'],
                 service)
+        ##self.add_descriptor(BatteryLevelDescriptor(bus, 0, self))
         self.notifying = True
         self.battery_lvl = 100
         gobject.timeout_add(5000, self.drain_battery)
@@ -190,3 +246,22 @@ class BatteryLevelCharacteristic(Characteristic):
             return
 
         self.notifying = False
+
+class BatteryLevelDescriptor(Descriptor):
+    """
+    Dummy test descriptor. Returns a static value.
+
+    """
+    TEST_DESC_UUID = '12345678-1234-5678-1234-56789abcdef2'
+
+    def __init__(self, bus, index, characteristic):
+        Descriptor.__init__(
+                self, bus, index,
+                self.TEST_DESC_UUID,
+                ['read'],
+                characteristic)
+
+    def ReadValue(self):
+        return [
+                dbus.Byte('T'), dbus.Byte('e'), dbus.Byte('s'), dbus.Byte('t')
+        ]

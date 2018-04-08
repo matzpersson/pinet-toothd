@@ -187,13 +187,14 @@ class Advertisement(dbus.service.Object):
     def Release(self):
         print '%s: Released!' % self.path
 
+
 class TootdAdvertisement(Advertisement):
 
     def __init__(self, bus, index):
         Advertisement.__init__(self, bus, index, 'peripheral')
-        self.add_service_uuid('180D')
-        self.add_service_uuid('180F')
-        self.add_manufacturer_data(0xffff, [0x00, 0x01, 0x02, 0x03, 0x04])
+        self.add_service_uuid('180A')
+        self.add_service_uuid('999A')
+        self.add_manufacturer_data(0xffff, [0x05, 0x06, 0x02, 0x03, 0x04])
         self.add_service_data('9999', [0x00, 0x01, 0x02, 0x03, 0x04])
         self.include_tx_power = True
 

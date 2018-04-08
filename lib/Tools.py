@@ -7,11 +7,6 @@ import thread
 import socket
 import sys
 
-def test(name):
-    #logger.info( "I'm testing..." + name )
-
-    pass
-
 def initLogging(logfile_prefix, level_name, log_name):
 
 	datefmt='%Y-%m-%d %H:%M:%S'
