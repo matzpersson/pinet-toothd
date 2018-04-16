@@ -18,7 +18,10 @@ from GattServer import Service
 from GattServer import Characteristic
 from GattServer import Descriptor
 
-from SystemDiscUsageService import *
+from services.SystemDiscUsageService import *
+from services.SystemNetworkInfoService import *
+from services.SystemRestartService import *
+from services.SystemWifiService import *
 
 BLUEZ_SERVICE_NAME = 'org.bluez'
 GATT_MANAGER_IFACE = 'org.bluez.GattManager1'
@@ -85,9 +88,12 @@ class Services(Thread):
                 bus.get_object(BLUEZ_SERVICE_NAME, adapter),
                 GATT_MANAGER_IFACE)
 
-        bat_service = BatteryService(bus, 0)
-        translation_service = TranslationService(bus, 1)
-        system_service = SystemDiscUsageService(bus, 2)
+        #bat_service = BatteryService(bus, 0)
+        #translation_service = TranslationService(bus, 1)
+        discusage_service = SystemDiscUsageService(bus, 2, global_logger)
+        #networkinfo_service = SystemNetworkInfoService(bus, 3)
+        restart_service = SystemRestartService(bus, 4, global_logger)
+        wifi_service = SystemWifiService(bus, 5, global_logger)
 
         mainloop = gobject.MainLoop()
 
@@ -95,13 +101,26 @@ class Services(Thread):
         #                                reply_handler=self.register_service_cb,
         #                                error_handler=self.register_service_error_cb)
 
-        service_manager.RegisterService(translation_service.get_path(), {},
+        ##service_manager.RegisterService(translation_service.get_path(), {},
+        ##                                reply_handler=self.register_service_cb,
+        ##                                error_handler=self.register_service_error_cb)
+
+        service_manager.RegisterService(discusage_service.get_path(), {},
                                         reply_handler=self.register_service_cb,
                                         error_handler=self.register_service_error_cb)
 
-        service_manager.RegisterService(system_service.get_path(), {},
+        """
+        service_manager.RegisterService(networkinfo_service.get_path(), {},
                                         reply_handler=self.register_service_cb,
-                                        error_handler=self.register_service_error_cb)
+                                        error_handler=self.register_service_error_cb)   
+        """
+        service_manager.RegisterService(restart_service.get_path(), {},
+                                        reply_handler=self.register_service_cb,
+                                        error_handler=self.register_service_error_cb) 
+
+        service_manager.RegisterService(wifi_service.get_path(), {},
+                                        reply_handler=self.register_service_cb,
+                                        error_handler=self.register_service_error_cb) 
         
         mainloop.run()
 

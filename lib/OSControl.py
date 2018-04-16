@@ -1,29 +1,41 @@
 import datetime
 import time
+import Tools as tools
 
 import os
-
+import subprocess
 import json
 import uuid
 
 class OsControl():
-	def __init__(self, logger, default_scheduler):
+	def __init__(self, logger):
 		self.logger = logger
-		self.default_scheduler = default_scheduler
 		self.prefix = "OS Control - "
 
 	def health(self):
 
-		health = [{'diskusage': '12%', 'uptime': 0}]
-		return
+		health = [{'diskusage': self.df, 'uptime': self.uptime() }]
+		return health
+
+	def uptime(self):
+
+		return 0
+
+	def df(self):
+
+		cmd = 'df -m | grep /dev/root | cut -c 41-45'
+		ps = subprocess.Popen(cmd , shell=True, stdout=subprocess.PIPE)
+		lines = ps.stdout.read()
+
+		return lines.replace(' ','').replace('\n','')
 
 	def restart(self):
 
 		self.logger.info(self.prefix + 'Restart Server by API')
 		cmd = "shutdown -r now"
-		os.system(cmd)
+		##os.system(cmd)
 
-		return json.dumps([])
+		return json.dumps("")
 
 	def orientation(self, orientation):
 
@@ -109,6 +121,24 @@ class OsControl():
 
 		return json.dumps([{'network': "wifi (DHCP)"}])
 
+	def getApList(self, iface = 'wlan0'):
+
+		cmd = 'iwlist ' + iface + ' scan | grep ESSID'
+		ps = subprocess.Popen(cmd , shell=True, stdout=subprocess.PIPE)
+		lines = ps.stdout.read()
+
+		## -- Yikes...
+		return lines.replace(' ','').replace('ESSID:', '').replace('"','')[:-1].split('\n')
+
+	def getCurrentAp(self):
+
+		cmd = 'iwconfig wlan0 | grep ESSID | cut -c 30-100'
+
+		ps = subprocess.Popen(cmd , shell=True, stdout=subprocess.PIPE)
+		lines = ps.stdout.read()
+
+		return lines.replace('"','').replace('\n','').replace(' ','')
+
 	def networkHotspot(self):
 
 		## -- Configure Hotspot
@@ -137,3 +167,8 @@ class OsControl():
 		self.logger.info(self.prefix + 'Configured Hotspot!')
 
 		return json.dumps([{'network': "Hostspot, requires restart"}])
+
+	def getNetwork(self):
+
+		return {'ip': tools.getIp(), 'hostname': tools.getHostname()}
+

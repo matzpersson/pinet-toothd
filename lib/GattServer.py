@@ -40,6 +40,7 @@ class Service(dbus.service.Object):
         self.uuid = uuid
         self.primary = primary
         self.characteristics = []
+
         dbus.service.Object.__init__(self, bus, self.path)
 
     def get_properties(self):
