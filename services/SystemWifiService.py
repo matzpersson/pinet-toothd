@@ -22,6 +22,7 @@ class SystemWifiService(Service):
         self.add_characteristic(SystemWifiGroupCharacteristic(bus, 1, self))
         self.add_characteristic(SystemWifiNameCharacteristic(bus, 2, self))
         self.add_characteristic(SystemWifiTypeCharacteristic(bus, 3, self))
+        self.add_characteristic(SystemWifiListCharacteristic(bus, 4, self, logger))
 
 class SystemWifiValueCharacteristic(Characteristic):
 
@@ -31,7 +32,7 @@ class SystemWifiValueCharacteristic(Characteristic):
         Characteristic.__init__(
             self, bus, index,
             self.CHARACS_UUID,
-            ['read'],
+            ['read', 'write'],
             service)
 
         self.logger = logger
@@ -46,6 +47,19 @@ class SystemWifiValueCharacteristic(Characteristic):
             self.value = array.array('B', json.dumps(data))
             self.value = self.value.tolist()        
             return dbus.Array(self.value)
+
+        except:
+            self.logger.info("Error")
+
+    def WriteValue(self, value):
+
+        try:
+
+            self.logger.info( "Set accesspoint to: " + bytearray(value).decode())
+
+            ## -- Uncomment to actually set wifi point
+            ##osc = OsControl(self.logger)
+            ##osc.networkWifiDhcp()
 
         except:
             self.logger.info("Error")
@@ -103,3 +117,31 @@ class SystemWifiTypeCharacteristic(Characteristic):
         self.value = array.array('B', json.dumps(data))
         self.value = self.value.tolist()        
         return dbus.Array(self.value)
+
+class SystemWifiListCharacteristic(Characteristic):
+
+    CHARACS_UUID = '900E'
+
+    def __init__(self, bus, index, service, logger):
+        Characteristic.__init__(
+            self, bus, index,
+            self.CHARACS_UUID,
+            ['read'],
+            service)
+
+        self.logger = logger
+
+    def ReadValue(self):
+
+        try:
+            osc = OsControl(self.logger)
+            self.logger.info("Scanning for list of Wifi Access Points...")
+
+            data = [{"list": osc.getApList()}]
+            self.value = array.array('B', json.dumps(data))
+            self.value = self.value.tolist()        
+            return dbus.Array(self.value)
+
+        except:
+            self.logger.info("Error")
+

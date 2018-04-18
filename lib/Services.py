@@ -22,6 +22,7 @@ from services.SystemDiscUsageService import *
 from services.SystemNetworkInfoService import *
 from services.SystemRestartService import *
 from services.SystemWifiService import *
+from services.SystemGpioService import *
 
 BLUEZ_SERVICE_NAME = 'org.bluez'
 GATT_MANAGER_IFACE = 'org.bluez.GattManager1'
@@ -91,9 +92,10 @@ class Services(Thread):
         #bat_service = BatteryService(bus, 0)
         #translation_service = TranslationService(bus, 1)
         discusage_service = SystemDiscUsageService(bus, 2, global_logger)
-        #networkinfo_service = SystemNetworkInfoService(bus, 3)
+        networkinfo_service = SystemNetworkInfoService(bus, 3, global_logger)
         restart_service = SystemRestartService(bus, 4, global_logger)
         wifi_service = SystemWifiService(bus, 5, global_logger)
+        gpio_service = SystemGpioService(bus, 6, global_logger)
 
         mainloop = gobject.MainLoop()
 
@@ -105,15 +107,18 @@ class Services(Thread):
         ##                                reply_handler=self.register_service_cb,
         ##                                error_handler=self.register_service_error_cb)
 
+        service_manager.RegisterService(gpio_service.get_path(), {},
+                                        reply_handler=self.register_service_cb,
+                                        error_handler=self.register_service_error_cb)
+
         service_manager.RegisterService(discusage_service.get_path(), {},
                                         reply_handler=self.register_service_cb,
                                         error_handler=self.register_service_error_cb)
 
-        """
         service_manager.RegisterService(networkinfo_service.get_path(), {},
                                         reply_handler=self.register_service_cb,
                                         error_handler=self.register_service_error_cb)   
-        """
+
         service_manager.RegisterService(restart_service.get_path(), {},
                                         reply_handler=self.register_service_cb,
                                         error_handler=self.register_service_error_cb) 

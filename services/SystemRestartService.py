@@ -54,8 +54,11 @@ class SystemRestartValueCharacteristic(Characteristic):
 
         try:
             self.logger.info(self.service.SERVICE_NAME + " - Restarting System")
-            osc = OsControl(self.logger)
-            osc.restart()
+
+            ## -- Uncomment to kick it in the guts
+            #osc = OsControl(self.logger)
+            #osc.restart()
+            
         except:
             self.logger.info("Error")
 

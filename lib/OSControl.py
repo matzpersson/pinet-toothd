@@ -33,7 +33,7 @@ class OsControl():
 
 		self.logger.info(self.prefix + 'Restart Server by API')
 		cmd = "shutdown -r now"
-		##os.system(cmd)
+		os.system(cmd)
 
 		return json.dumps("")
 
@@ -107,15 +107,6 @@ class OsControl():
 		f.write('    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf\n')
 
 		f.close()
-
-		## -- Disable hostapd and dnsmasq. Requires restart
-		filename = '/etc/init.d/dnsmasq'
-		if os.path.isfile(filename):
-			os.rename(filename, filename + ".off")
-
-		filename = '/etc/init.d/hostapd'
-		if os.path.isfile(filename):
-			os.rename(filename, filename + ".off")
 
 		self.logger.info(self.prefix + 'Configured Wifi DHCP!')
 
