@@ -1,6 +1,6 @@
 # Bluetooth GATT server for Raspberry Pi
 
-Toothd.py enables you to control various parts of your Raspberry's system without having to be connected over Lan or wireless. It runs 5 example Bluetooth services each with a number of Characteristics that show cases various type of controls such as GPIO, System Restart, Wifi Configuration, Ip Address display etc.
+Toothd.py enables you to control various parts of your Raspberry's system without having to be connected over Lan, wireless or directly via console. It runs 5 example Bluetooth services each with a number of Characteristics that show cases various type of controls such as GPIO, System Restart, Wifi Configuration, Ip Address display etc.
 
 The system commands are very basic and a mix of grep and cut to demonstrate functionality.
 
